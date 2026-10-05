@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  # Base de datos PostgreSQL para Drizzle ORM
+  postgres:
+    image: postgres:16-alpine
+    container_name: agent-ia-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: agent_user
+      POSTGRES_PASSWORD: agent_password
+      POSTGRES_DB: agent_ia_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agent_user -d agent_ia_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Adminer para gestión de BD (opcional)
+  adminer:
+    image: adminer:latest
+    container_name: agent-ia-adminer
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+
+  # Redis para caché y sesiones (útil para Better Auth)
+  redis:
+    image: redis:7-alpine
+    container_name: agent-ia-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  postgres_data:
+  redis_data:
